@@ -1,0 +1,144 @@
+You are a senior full-stack engineer. Configure this project so it works correctly as a World App MiniKit application on Replit.
+
+⚠️ CRITICAL RULES:
+
+- DO NOT remove or rewrite business logic
+- DO NOT break MiniKit integration
+- DO NOT change authentication flow
+- DO NOT restructure the monorepo
+- KEEP frontend and backend separation
+
+---
+
+🎯 GOAL
+
+Make the app fully functional for World App with MiniKit:
+
+- Identity verification works
+- API routes (/api/*) work via Express
+- Frontend connects correctly to backend
+- App loads correctly inside World App browser
+
+---
+
+🔐 WORLDCoin / MiniKit CONFIG
+
+Use these values:
+
+- APP_ID: app_ccf542f4e61d9faa92be78b5154299b4
+- ACTION: verifica-que-eres-humano-
+- RP_ID: rp_4a019d41d79b99a6
+
+Ensure these are correctly wired into MiniKit configuration and API verification logic.
+
+---
+
+🧩 BACKEND (Express)
+
+1. Ensure an Express server exists (server.mjs or similar)
+
+2. Mount all existing Vercel-style handlers:
+
+- /api/verify
+- /api/nonce
+- /api/get-profile
+- any other /api routes
+
+DO NOT rewrite handlers — just wrap them.
+
+3. Ensure server runs with:
+
+const port = Number(process.env.PORT) || 3001;
+
+app.listen(port, "0.0.0.0", () => {
+console.log("API running on port", port);
+});
+
+---
+
+🔐 REQUIRED ENV VARIABLES
+
+Use environment variables (NO hardcoding sensitive data):
+
+Backend:
+
+- SUPABASE_URL
+- SUPABASE_SERVICE_ROLE_KEY
+- RP_SIGNING_KEY
+
+Frontend:
+
+- VITE_API_URL (optional fallback to "")
+
+---
+
+🌐 FRONTEND (Vite)
+
+1. Ensure Vite runs on:
+
+port: 5000
+host: "0.0.0.0"
+
+2. Add proxy:
+
+/api → http://localhost:3001
+
+3. Ensure MiniKitProvider is correctly configured using:
+
+APP_ID
+
+4. Ensure all API calls use:
+
+const API_URL = import.meta.env.VITE_API_URL || "";
+
+fetch("${API_URL}/api/...")
+
+---
+
+📱 WORLD APP COMPATIBILITY
+
+1. Ensure app works inside iframe / in-app browser:
+
+- No hard redirects
+- No localhost references in production
+- No window blocking behavior
+
+2. Ensure verification flow works:
+
+- nonce endpoint returns valid nonce
+- verify endpoint validates proof using RP_SIGNING_KEY
+- action = "verifica-que-eres-humano-"
+
+---
+
+🧪 DEBUG
+
+Add logs:
+
+- console.log("MiniKit init", APP_ID)
+- console.log("Verify request received")
+- console.log("API URL:", API_URL)
+
+---
+
+🚫 DO NOT TOUCH
+
+- React Query
+- Zustand store
+- MiniKitProvider internals
+- UI components
+- Routing
+
+---
+
+✅ FINAL RESULT
+
+After changes:
+
+- App loads in Replit
+- API works via Express
+- MiniKit initializes correctly
+- World App can open the URL without errors
+- Verification flow works end-to-end
+
+Make minimal, safe changes only.

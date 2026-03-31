@@ -24,3 +24,10 @@ expertMode = true
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 20000
+
+[userenv]
+
+[userenv.shared]
+WORLD_APP_ID = "app_ccf542f4e61d9faa92be78b5154299b4"
+WORLD_ACTION = "verifica-que-eres-humano-"
+WORLD_RP_ID = "rp_4a019d41d79b99a6"
