@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Loader2, Check, Tag, ChevronDown, CreditCard, Globe, Zap, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MiniKit, Tokens, PaymentFinalStatus } from "@worldcoin/minikit-js";
+import { MiniKit, Tokens } from "@worldcoin/minikit-js";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Tier {
@@ -169,7 +169,7 @@ export function SubscribePlan({ creatorId, creatorUsername, onSuccess, onClose }
         network: "worldchain",
       });
 
-      if (finalPayload.status !== PaymentFinalStatus.Success) {
+      if (finalPayload.status !== "success") {
         throw new Error("Payment cancelled or failed");
       }
 

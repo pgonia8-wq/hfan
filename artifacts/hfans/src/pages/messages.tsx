@@ -4,7 +4,7 @@ import { useAuthStore } from "@/store/use-auth-store";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Send, Lock, DollarSign, ArrowLeft, Search, MessageCircle } from "lucide-react";
-import { MiniKit, Tokens, PaymentFinalStatus } from "@worldcoin/minikit-js";
+import { MiniKit, Tokens } from "@worldcoin/minikit-js";
 import { cn, formatWld } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -103,7 +103,7 @@ export default function Messages() {
           description: `Unlock message`,
           network: "worldchain",
         });
-        if (finalPayload.status !== PaymentFinalStatus.Success) throw new Error("Payment failed");
+        if (finalPayload.status !== "success") throw new Error("Payment failed");
         await fetch("/api/payments/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
