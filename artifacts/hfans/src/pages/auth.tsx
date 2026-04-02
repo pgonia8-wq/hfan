@@ -1,15 +1,12 @@
 import { useState } from "react";
 import { MiniKit } from "@worldcoin/minikit-js";
-import { useWalletAuth, customFetch } from "@workspace/api-client-react";
 import { useAuthStore } from "@/store/use-auth-store";
 import { Button } from "@/components/ui/button";
-import { Loader2, Fingerprint, ShieldCheck, Coins, Lock } from "lucide-react";
-import { motion } from "framer-motion";
 
 export function AuthScreen() {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const walletAuthMutation = useWalletAuth();
+
   const { setUser } = useAuthStore();
 
   const handleConnect = async () => {
@@ -17,8 +14,11 @@ export function AuthScreen() {
     setError(null);
 
     try {
-      // ✅ AHORA USA customFetch (respeta baseUrl)
-      const { nonce } = await customFetch<{ nonce: string }>("/api/auth/nonce");
+      // 🔥 Obtener nonce del backend REAL
+      const nonceRes = await fetch("/api/auth/nonce");
+      if (!nonceRes.ok) throw new Error("Failed to get nonce");
+
+      const { nonce } = await nonceRes.json();
 
       let finalPayload: any;
 
@@ -28,73 +28,59 @@ export function AuthScreen() {
           requestId: "0",
           expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           notBefore: new Date(Date.now() - 24 * 60 * 60 * 1000),
-          statement: "Sign in to H Fans — the premier Web3 creator platform.",
+          statement: "Sign in to H Fans",
         });
 
-        if (fp.status !== "success") throw new Error("Wallet auth cancelled");
+        if (fp.status !== "success") {
+          throw new Error("Wallet auth cancelled");
+        }
+
         finalPayload = fp;
       } else {
         // fallback dev
-        await new Promise(r => setTimeout(r, 1200));
-
-        const mockAddr = `0x${Array.from({ length: 40 }, () =>
-          Math.floor(Math.random() * 16).toString(16)
-        ).join("")}`;
-
         finalPayload = {
           status: "success",
-          message: `hfans.app wants you to sign in with your Ethereum account:\n${mockAddr}\n\nSign in to H Fans\n\nURI: https://hfans.app\nVersion: 1\nChain ID: 480\nNonce: ${nonce}\nIssued At: ${new Date().toISOString()}`,
-          signature: "0x" + "a".repeat(130),
-          address: mockAddr,
+          address: "0x123",
+          signature: "0xabc",
+          message: `Nonce: ${nonce}`,
         };
       }
 
-      const res = await walletAuthMutation.mutateAsync({
-        data: { payload: finalPayload, nonce }
+      // 🔥 Login contra backend
+      const res = await fetch("/api/auth/wallet", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          payload: finalPayload,
+          nonce,
+        }),
       });
 
-      setUser((res as any).user);
+      if (!res.ok) throw new Error("Auth failed");
+
+      const data = await res.json();
+      setUser(data.user);
 
     } catch (e: any) {
       console.error("Auth error", e);
-      setError(e?.message || "Authentication failed. Please try again.");
+      setError(e?.message || "Authentication failed");
     } finally {
       setIsAuthenticating(false);
     }
   };
 
   return (
-    <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center relative overflow-hidden bg-black text-white">
-      <img
-        src={`${import.meta.env.BASE_URL}images/hero-bg.png`}
-        alt=""
-        className="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/75 to-black/30" />
-
-      <div className="z-10 w-full max-w-sm px-6 flex flex-col items-center text-center">
-        <motion.img
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.7 }}
-          src={`${import.meta.env.BASE_URL}images/logo.png`}
-          alt="H Fans Logo"
-          className="w-24 h-24 mb-6"
-        />
-
-        <h1 className="text-4xl font-bold mb-2">
-          H <span className="text-primary">Fans</span>
-        </h1>
-
-        <p className="text-white/60 mb-8 text-sm">
-          Premium exclusive content.
-        </p>
+    <div className="min-h-screen flex items-center justify-center bg-black text-white">
+      <div className="text-center space-y-4">
+        <h1 className="text-2xl font-bold">H Fans</h1>
 
         <Button onClick={handleConnect} disabled={isAuthenticating}>
           {isAuthenticating ? "Connecting..." : "Connect with World App"}
         </Button>
 
-        {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+        {error && <p className="text-red-400">{error}</p>}
       </div>
     </div>
   );
