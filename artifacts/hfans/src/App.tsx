@@ -4,7 +4,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { MiniKitProvider } from "@/components/MiniKitProvider";
 import { useAuthStore } from "@/store/use-auth-store";
-import { useGetMe } from "@workspace/api-client-react";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -30,22 +29,21 @@ const queryClient = new QueryClient({
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { user, setUser } = useAuthStore();
   const [checking, setChecking] = useState(true);
-  const { data, status } = useGetMe({ query: { retry: false } });
 
   useEffect(() => {
-    if (status === "success") { setUser(data); setChecking(false); }
-    else if (status === "error") { setUser(null); setChecking(false); }
-  }, [data, status, setUser]);
-
-  useEffect(() => {
-    const t = setTimeout(() => setChecking(false), 3000);
-    return () => clearTimeout(t);
-  }, []);
+    fetch("/api/auth/me", {
+      credentials: "include",
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((user) => setUser(user))
+      .catch(() => setUser(null))
+      .finally(() => setChecking(false));
+  }, [setUser]);
 
   if (checking) {
     return (
-      <div className="min-h-[100dvh] w-full flex items-center justify-center bg-black">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <Loader2 className="w-8 h-8 animate-spin text-white" />
       </div>
     );
   }
