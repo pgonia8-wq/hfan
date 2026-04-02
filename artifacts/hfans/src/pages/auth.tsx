@@ -88,4 +88,14 @@ export function AuthScreen() {
 
         <p className="text-white/60 mb-8 text-sm">
           Premium exclusive content.
-        </
+        </p>
+
+        <Button onClick={handleConnect} disabled={isAuthenticating}>
+          {isAuthenticating ? "Connecting..." : "Connect with World App"}
+        </Button>
+
+        {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+      </div>
+    </div>
+  );
+}
